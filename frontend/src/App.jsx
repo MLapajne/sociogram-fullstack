@@ -9,6 +9,10 @@ import UserForm from "./pages/UserForm";
 import { useAppDispatch, useAppSelector } from "./app/hooks";
 import { formUrl, reset } from "./features/urls/formUrlsSlice";
 import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Navbar from "./components/Navbar";
+import CheckUser from "./pages/CheckUser";
+import CheckForm from "./pages/CheckForm";
 
 function Logout() {
   localStorage.clear();
@@ -30,6 +34,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <Navbar />
       <Routes>
         <Route
           path="/"
@@ -43,7 +48,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<RegisterAndLogout />} />
         <Route path="*" element={<NotFound />} />
-        <Route path="/user_form/:random_value" element={<UserForm />} />
+        <Route path="/user_form/:random_value" element={<CheckUser />} />
+        <Route path="/tableform" element={<CheckForm />} />
         {console.log(urls)}
         {urls &&
           urls.formUrls.map((url) => (

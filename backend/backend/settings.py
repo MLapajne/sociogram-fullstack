@@ -33,6 +33,14 @@ DEBUG = True
 # This allows all hosts to access the server
 ALLOWED_HOSTS = ["*"]
 
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'TODO List API',
+    'DESCRIPTION': 'API documentation for our app',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True
+    # OTHER SETTINGS
+}
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -41,6 +49,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 SIMPLE_JWT = {
@@ -61,6 +70,8 @@ INSTALLED_APPS = [
     "api",
     "rest_framework",
     "corsheaders",
+    'drf_spectacular',
+    #"drf"
 ]
 
 MIDDLEWARE = [

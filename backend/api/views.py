@@ -13,10 +13,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import UserRandomValue
 import uuid
+from .models import Question, User, Sociogram
+from .serializers import QuestionSerializer, UserSerializer, SociogramSerializer
+from rest_framework import viewsets
+from rest_framework import mixins, viewsets
 
 class NoteListCreate(generics.ListCreateAPIView):
     serializer_class = NoteSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         return Note.objects.filter(author=self.request.user)
@@ -29,7 +33,7 @@ class NoteListCreate(generics.ListCreateAPIView):
 
 class NoteDelete(generics.DestroyAPIView):
     serializer_class = NoteSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         return Note.objects.filter(author=self.request.user)
@@ -106,3 +110,18 @@ class SubmitUserForm(APIView):
         username = data.get('username')
         # Save or process the data as needed
         return Response({'message': 'Form submitted successfully'}, status=status.HTTP_200_OK)
+
+"""
+class QuestionViewSet(viewsets.ModelViewSet):
+    queryset = Question.objects.all()
+    serializer_class = QuestionSerializer
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+"""
+class SociogramViewSet(mixins.CreateModelMixin, 
+                        mixins.ListModelMixin, 
+                        viewsets.GenericViewSet):
+    queryset = Sociogram.objects.all()
+    serializer_class = SociogramSerializer
