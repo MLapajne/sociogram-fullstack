@@ -16,18 +16,19 @@ class Note(models.Model):
 
 class UserRandomValue(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-
     #@staticmethod
+    """
     def generate_sqids():
-        sqids = Sqids()
-        random_values = [random.randint(0, 10) for _ in range(3)]
-        return sqids.encode(random_values)
+    sqids = Sqids()
+    random_values = [random.randint(0, 10) for _ in range(3)]
+    return sqids.encode(random_values)
 
     random_value = models.CharField(max_length=100, default=generate_sqids, unique=True)
- 
-    #random_value = models.UUIDField(default=uuid.uuid4)
+    """
+   
 
 
+        
 #gen code:
 
 
@@ -56,20 +57,35 @@ class User(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
     
-class SociogramData(models.Model):
-    instructor_name = models.CharField(max_length=100)
-    description = models.TextField()
-    language = models.CharField(max_length=2)
 
-    def __str__(self):
-        return f"{self.instructor_name} answered {self.description} in {self.language}"
 
 class Sociogram(models.Model):
-    
-    sociogram_data = models.ManyToManyField(SociogramData, related_name='sociogram_data')
-    pos_questions = models.ManyToManyField(Question, related_name='positive_sociograms')
-    neg_questions = models.ManyToManyField(Question, related_name='negative_sociograms')
+    id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
+    instructor_name = models.CharField(max_length=255)
+    description = models.TextField()
+    language = models.CharField(max_length=2)
+    #sociogram_unique_id = models.UUIDField(default=uuid.uuid4, editable=False ,unique=True)
+    questions = models.ManyToManyField(Question, related_name='sociograms_questions')
     users = models.ManyToManyField(User, related_name='sociograms')
 
 
 
+
+class AnswersFrontend(models.Model):
+    QUESTION_TYPES = (
+        ('pos', 'Positive'),
+        ('neg', 'Negative')
+    )
+    index = models.IntegerField(unique=True, default=0)
+    answers = models.JSONField(default=list)
+    question_type = models.CharField(max_length=3, choices=QUESTION_TYPES)
+    
+    def __str__(self):
+        return f"Question {self.index}"
+
+class SubmitFrontendData(models.Model):
+    #author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='answers_frontend')
+    created_at = models.DateTimeField(auto_now_add=True)
+    questions = models.ManyToManyField(AnswersFrontend, related_name='submissions')
+    
+    

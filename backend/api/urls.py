@@ -7,10 +7,11 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, Spec
 
 router = DefaultRouter()
 router.register(r'sociograms', SociogramViewSet)
+router.register(r'questionsFrontend', views.QuestionFrontendViewSet)
 
 urlpatterns = [
     path('', include(router.urls)), 
-    path('notes/', views.NoteListCreate.as_view()   , name='note-list-create'),
+    path('notes/', views.NoteListCreate.as_view(), name='note-list-create'),
     path('notes/delete/<int:pk>/', views.NoteDelete.as_view(), name='note-delete'),
     #path('users/', views.CreateUserView.as_view(), name='create-user'),
     #path('<int:random_url>/', views.UserFormView.as_view(), name='user-form'),

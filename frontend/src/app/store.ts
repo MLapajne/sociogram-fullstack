@@ -1,10 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
 
 import formUrlsReducer from "../features/urls/formUrlsSlice";
+import formPeopleReducer from "../features/urls/formPeopleSlice";
 
 export const store = configureStore({
   reducer: {
     formUrls: formUrlsReducer,
+    formPeople: formPeopleReducer,
   },
 });
 

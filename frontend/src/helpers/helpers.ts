@@ -1,5 +1,5 @@
 export function getBaseUrl(): string {
   return window.location.hostname === "localhost"
-    ? "http://localhost:5173/"
+    ? "http://127.0.0.1:8000"
     : `${window.location.protocol}//${window.location.hostname}`;
 }

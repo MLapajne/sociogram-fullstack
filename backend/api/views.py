@@ -5,16 +5,16 @@ from django.shortcuts import redirect, render
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import generics
-from .serializers import UserFormSerializer, UserSerializer, NoteSerializer
+from .serializers import SubmitFrontendDataSerializer, UserSerializer, NoteSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import Note
+from .models import Note, SubmitFrontendData
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import UserRandomValue
 import uuid
 from .models import Question, User, Sociogram
-from .serializers import QuestionSerializer, UserSerializer, SociogramSerializer
+from .serializers import UserSerializer, SociogramSerializer, QuestionFrontendSerializer
 from rest_framework import viewsets
 from rest_framework import mixins, viewsets
 
@@ -43,7 +43,7 @@ class CreateUserView(generics.CreateAPIView):
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
 # Create your views here.
-
+"""
 class DisplayUrl(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserFormSerializer
@@ -81,35 +81,8 @@ class DisplayUrl(generics.CreateAPIView):
             serializer.save()
             return redirect(reverse('success'))
         return render(request, 'user_form.html', {'form': serializer})
-    
+ """   
 
-class UserFormView(generics.CreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserFormSerializer
-    permission_classes = [AllowAny]
-
-    def get(self, request, random_value ):
-        #return render(request, 'user_form.html', {'form': UserFormSerializer()})
-        return render(request, 'user_form.html', {'random_value': random_value})
-
-    def post(self, request):
-        #serializer = UserFormSerializer(data=request.data)
-        #if serializer.is_valid():
-        #    serializer.save()
-        #    return redirect(reverse('success'))
-        #return render(request, 'user_form.html', {'form': serializer})
-        username = request.POST.get('username')
-        # Save data or perform some action
-        return JsonResponse({'message': 'Form submitted successfully'})
-    
-class SubmitUserForm(APIView):
-    def post(self, request):
-        # Process the submitted data
-        data = request.data
-        # Assuming 'username' is a field in the form
-        username = data.get('username')
-        # Save or process the data as needed
-        return Response({'message': 'Form submitted successfully'}, status=status.HTTP_200_OK)
 
 """
 class QuestionViewSet(viewsets.ModelViewSet):
@@ -125,3 +98,9 @@ class SociogramViewSet(mixins.CreateModelMixin,
                         viewsets.GenericViewSet):
     queryset = Sociogram.objects.all()
     serializer_class = SociogramSerializer
+
+class QuestionFrontendViewSet(mixins.CreateModelMixin, 
+                        mixins.ListModelMixin, 
+                        viewsets.GenericViewSet):
+    queryset = SubmitFrontendData.objects.all()
+    serializer_class = SubmitFrontendDataSerializer

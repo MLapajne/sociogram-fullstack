@@ -11,8 +11,8 @@ import { formUrl, reset } from "./features/urls/formUrlsSlice";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Navbar from "./components/Navbar";
-import CheckUser from "./pages/CheckUser";
 import CheckForm from "./pages/CheckForm";
+import { fetchSociograms } from "./features/urls/formPeopleSlice";
 
 function Logout() {
   localStorage.clear();
@@ -26,10 +26,11 @@ function RegisterAndLogout() {
 
 function App() {
   const dispatch = useAppDispatch();
-  const urls = useAppSelector((state) => state.urls);
+  const formData = useAppSelector((state) => state.formPeople);
 
   useEffect(() => {
-    dispatch(formUrl());
+    dispatch(reset());
+    dispatch(fetchSociograms());
   }, []);
 
   return (
@@ -48,15 +49,15 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<RegisterAndLogout />} />
         <Route path="*" element={<NotFound />} />
-        <Route path="/user_form/:random_value" element={<CheckUser />} />
         <Route path="/tableform" element={<CheckForm />} />
-        {console.log(urls)}
-        {urls &&
-          urls.formUrls.map((url) => (
+
+        {formData &&
+          formData.sociograms[1] &&
+          formData.sociograms[1].users.map((usr) => (
             <Route
-              key={url}
-              path={`/user_form/${url}`}
-              element={<UserForm />}
+              key={usr.uid}
+              path={`/user_form/${usr.uid}-${formData.sociograms[1].id}`}
+              element={<CheckForm fromData={formData} />}
             />
           ))}
       </Routes>

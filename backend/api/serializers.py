@@ -1,8 +1,9 @@
 import uuid
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Note, UserRandomValue
+from .models import AnswersFrontend, Note, SubmitFrontendData, UserRandomValue
 from django import forms
+from rest_framework.response import Response
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -22,16 +23,18 @@ class NoteSerializer(serializers.ModelSerializer):
         read_only_fields = ["author", "created_at"]
         #extra_kwargs = {"title": {"author": {"write_only": True}}}
 
-
+"""
 class UserFormSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = '__all__'
+"""
+
 
 
 #generated code:
 
-from .models import Question, User, Sociogram, SociogramData
+from .models import Question, User, Sociogram
 
 class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -42,44 +45,67 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'uid', 'first_name', 'last_name', 'gender']
+        
+import logging
 
-class SociogramDataSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SociogramData
-        fields = ['id', 'instructor_name', 'description', 'language']
+logger = logging.getLogger(__name__)
+    
 
 class SociogramSerializer(serializers.ModelSerializer):
-    pos_questions = QuestionSerializer(many=True)
-    neg_questions = QuestionSerializer(many=True)
+    questions = QuestionSerializer(many=True)
     users = UserSerializer(many=True)
-    sociogramData = SociogramDataSerializer(many=True)
+
+
 
     class Meta:
         model = Sociogram
-        fields = ['id', 'pos_questions', 'neg_questions', 'users', 'sociogramData']
+        fields = ['id','instructor_name', 'description', 'language', 'questions', 'users']
+        #read_only_fields = ['sociogram_unique_id']
+    """
+    def list(self, request):
+        sociograms = Sociogram.objects.all()
+        return sociograms
+    """
 
     def create(self, validated_data):
-        pos_questions_data = validated_data.pop('pos_questions')
-        neg_questions_data = validated_data.pop('neg_questions')
+        logger.debug(f"Validated data: {validated_data}")   
+        questions_data = validated_data.pop('questions')
         users_data = validated_data.pop('users')
-        sociogramsData_data = validated_data.pop('sociogramData')
         
         sociogram = Sociogram.objects.create(**validated_data)
         
-        for question_data in pos_questions_data:
+        for question_data in questions_data:
             question, created = Question.objects.get_or_create(**question_data)
-            sociogram.pos_questions.add(question)
-        
-        for question_data in neg_questions_data:
-            question, created = Question.objects.get_or_create(**question_data)
-            sociogram.neg_questions.add(question)
+            sociogram.questions.add(question)
         
         for user_data in users_data:
             user, created = User.objects.get_or_create(**user_data)
             sociogram.users.add(user)
-
-        for sociogramData_data in sociogramsData_data:
-            sociogramData_new, created = SociogramData.objects.get_or_create(**sociogramData_data)
-            sociogram.sociogram_data.add(sociogramData_new)
+        
             
         return sociogram
+
+
+
+#serilzers for frontend post request
+class QuestionFrontendSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AnswersFrontend
+        fields = ['index', 'answers', 'question_type']
+
+class SubmitFrontendDataSerializer(serializers.ModelSerializer):
+    questions = QuestionFrontendSerializer(many=True)
+
+    class Meta:
+        model = SubmitFrontendData
+        fields = ['id', 'created_at', 'questions']
+    
+    def create(self, validated_data):
+        questions_data = validated_data.pop('questions')
+        submitFrontendData = SubmitFrontendData.objects.create(**validated_data)
+        
+        for question_data in questions_data:
+            question, created = AnswersFrontend.objects.get_or_create(**question_data)
+            submitFrontendData.questions.add(question)
+        
+        return submitFrontendData
