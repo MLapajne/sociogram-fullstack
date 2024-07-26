@@ -4,6 +4,7 @@ from rest_framework import serializers
 from .models import AnswersFrontend, Note, SubmitFrontendData, UserRandomValue
 from django import forms
 from rest_framework.response import Response
+from .models import User, Sociogram
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -34,17 +35,14 @@ class UserFormSerializer(serializers.ModelSerializer):
 
 #generated code:
 
-from .models import Question, User, Sociogram
 
-class QuestionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Question
-        fields = ['id', 'question_text', 'question_type']
+
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'uid', 'first_name', 'last_name', 'gender']
+        fields = ['id', 'firstName', 'lastName', 'gender']
         
 import logging
 
@@ -52,14 +50,13 @@ logger = logging.getLogger(__name__)
     
 
 class SociogramSerializer(serializers.ModelSerializer):
-    questions = QuestionSerializer(many=True)
     users = UserSerializer(many=True)
 
 
 
     class Meta:
         model = Sociogram
-        fields = ['id','instructor_name', 'description', 'language', 'questions', 'users']
+        fields = ['id','instructorName', 'description', 'language', 'negQuestions', 'posQuestions' ,'users']
         #read_only_fields = ['sociogram_unique_id']
     """
     def list(self, request):
@@ -69,14 +66,10 @@ class SociogramSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         logger.debug(f"Validated data: {validated_data}")   
-        questions_data = validated_data.pop('questions')
         users_data = validated_data.pop('users')
         
         sociogram = Sociogram.objects.create(**validated_data)
         
-        for question_data in questions_data:
-            question, created = Question.objects.get_or_create(**question_data)
-            sociogram.questions.add(question)
         
         for user_data in users_data:
             user, created = User.objects.get_or_create(**user_data)
@@ -91,21 +84,21 @@ class SociogramSerializer(serializers.ModelSerializer):
 class QuestionFrontendSerializer(serializers.ModelSerializer):
     class Meta:
         model = AnswersFrontend
-        fields = ['index', 'answers', 'question_type']
+        fields = ['question', 'answers', 'questionType']
 
 class SubmitFrontendDataSerializer(serializers.ModelSerializer):
-    questions = QuestionFrontendSerializer(many=True)
+    questionsAndAnswers = QuestionFrontendSerializer(many=True)
 
     class Meta:
         model = SubmitFrontendData
-        fields = ['id', 'created_at', 'questions']
+        fields = ['id', 'firstName' ,'lastName', 'createdAt', 'questionsAndAnswers']
     
     def create(self, validated_data):
-        questions_data = validated_data.pop('questions')
+        questions_data = validated_data.pop('questionsAndAnswers')
         submitFrontendData = SubmitFrontendData.objects.create(**validated_data)
         
         for question_data in questions_data:
             question, created = AnswersFrontend.objects.get_or_create(**question_data)
-            submitFrontendData.questions.add(question)
+            submitFrontendData.questionsAndAnswers.add(question)
         
         return submitFrontendData

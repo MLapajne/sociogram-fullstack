@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import UserRandomValue
 import uuid
-from .models import Question, User, Sociogram
+from .models import User, Sociogram
 from .serializers import UserSerializer, SociogramSerializer, QuestionFrontendSerializer
 from rest_framework import viewsets
 from rest_framework import mixins, viewsets
@@ -98,6 +98,24 @@ class SociogramViewSet(mixins.CreateModelMixin,
                         viewsets.GenericViewSet):
     queryset = Sociogram.objects.all()
     serializer_class = SociogramSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        #serializer.is_valid(raise_exception=True)
+        if not serializer.is_valid():
+            print("Validation errors:", serializer.errors)  # Print validation errors
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        self.perform_create(serializer)
+        print("Instance created:", serializer.instance) 
+        # Customize the response data as needed
+        custom_response_data = {
+            'success': True,
+        }
+        return Response(custom_response_data, status=status.HTTP_201_CREATED)
+    
+    def perform_create(self, serializer):
+        # Add any custom creation logic here
+        serializer.save()
 
 class QuestionFrontendViewSet(mixins.CreateModelMixin, 
                         mixins.ListModelMixin, 
