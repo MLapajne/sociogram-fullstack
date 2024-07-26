@@ -31,7 +31,6 @@ interface Sociogram {
   }[];
   users: {
     id: number;
-    uid: string;
     first_name: string;
     last_name: string;
     gender: string;

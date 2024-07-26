@@ -52,14 +52,16 @@ function App() {
         <Route path="/tableform" element={<CheckForm />} />
 
         {formData &&
-          formData.sociograms[1] &&
-          formData.sociograms[1].users.map((usr) => (
-            <Route
-              key={usr.uid}
-              path={`/user_form/${usr.uid}-${formData.sociograms[1].id}`}
-              element={<CheckForm fromData={formData} />}
-            />
-          ))}
+          formData.sociograms &&
+          formData.sociograms.map((sociogram) =>
+            sociogram.users.map((usr) => (
+              <Route
+                key={usr.id}
+                path={`/user_form/${usr.id}-${sociogram.id}`}
+                element={<CheckForm mainUser={usr} formData={sociogram}  />}
+              />
+            ))
+          )}
       </Routes>
     </BrowserRouter>
   );
