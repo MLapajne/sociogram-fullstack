@@ -23,9 +23,7 @@ export default function UserConfirmationPage({
 
   const [people, setPeople] = useState([]);
 
-  const sendDataHandler = () => {
-    //dispatch(postFormData());
-  };
+  const sendDataHandler = () => {};
 
   const handleAccept = () => {
     // Handle accept action
@@ -66,7 +64,7 @@ export default function UserConfirmationPage({
         </p>
         {formData &&
           (questionsComponent({
-            id: formData.id,
+            sociogramId: formData.id,
             posQuestions: formData.posQuestions,
             negQuestions: formData.negQuestions,
             users: formData.users,

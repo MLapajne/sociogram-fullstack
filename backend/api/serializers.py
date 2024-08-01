@@ -1,7 +1,7 @@
 import uuid
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import AnswersFrontend, Note, SubmitFrontendData, UserRandomValue
+from .models import Note, SubmitFrontendData, UserRandomValue
 from django import forms
 from rest_framework.response import Response
 from .models import User, Sociogram
@@ -65,7 +65,6 @@ class SociogramSerializer(serializers.ModelSerializer):
     """
 
     def create(self, validated_data):
-        logger.debug(f"Validated data: {validated_data}")   
         users_data = validated_data.pop('users')
         
         sociogram = Sociogram.objects.create(**validated_data)
@@ -80,25 +79,23 @@ class SociogramSerializer(serializers.ModelSerializer):
 
 
 
-#serilzers for frontend post request
-class QuestionFrontendSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AnswersFrontend
-        fields = ['question', 'answers', 'questionType']
 
 class SubmitFrontendDataSerializer(serializers.ModelSerializer):
-    questionsAndAnswers = QuestionFrontendSerializer(many=True)
+    users = UserSerializer(many=True, read_only=True)
+    #sociogramId = serializers.CharField(max_length=50)
 
     class Meta:
         model = SubmitFrontendData
-        fields = ['id', 'firstName' ,'lastName', 'createdAt', 'questionsAndAnswers']
+        fields = ['sociogramId', 'firstName' ,'lastName', 'createdAt', 'gender', 'users', 'posQuestions', 'negQuestions']
     
     def create(self, validated_data):
-        questions_data = validated_data.pop('questionsAndAnswers')
+        sociogram_id = validated_data.get('sociogramId')
+        try:
+            sociogram = Sociogram.objects.get(id=sociogram_id)
+        except Sociogram.DoesNotExist:
+            raise serializers.ValidationError("Sociogram does not exist")
+
         submitFrontendData = SubmitFrontendData.objects.create(**validated_data)
-        
-        for question_data in questions_data:
-            question, created = AnswersFrontend.objects.get_or_create(**question_data)
-            submitFrontendData.questionsAndAnswers.add(question)
-        
+        submitFrontendData.users.set(sociogram.users.all())
+
         return submitFrontendData

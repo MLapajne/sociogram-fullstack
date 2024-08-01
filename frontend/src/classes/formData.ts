@@ -5,11 +5,14 @@ export interface QuestionAndAnswer {
 }
 
 export interface FormPostData {
-  id: string;
+  sociogramId: string;
   firstName: string;
   lastName: string;
+  gender: "MALE" | "FEMALE" | "OTHER";
+  //users: FormUsers[];
   //createdAt: string; // Consider using Date type if you plan to work with date objects
-  questionsAndAnswers: QuestionAndAnswer[];
+  posQuestions: string[];
+  negQuestions: string[];
 }
 
 export interface FormUsers {

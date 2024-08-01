@@ -23,7 +23,7 @@ interface FormState {
   isLoading: boolean;
   isSuccess: boolean;
   isError: boolean;
-  formData: FormData[];
+  formData: FormPostData[];
   message: string;
 }
 

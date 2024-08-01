@@ -12,15 +12,44 @@ import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { postFormData, reset } from "../features/formPost/formPostSlice";
 
 interface PosQuestionProps {
-  id: string;
+  sociogramId: string;
   negQuestions: string[];
   posQuestions: string[];
   users: FormUsers[];
   mainUser: FormUsers;
 }
 
+const FormSchema = z.object({
+  items: z.array(z.string()).refine(
+    (value) => {
+      type Counter = { [key: string]: number };
+      const counter: Counter = {};
+      for (const item of value) {
+        const [questionIndex, , questionType] = item.split("-");
+        const groupKey = `${questionIndex}-${questionType}`;
+        if (!counter[groupKey]) {
+          counter[groupKey] = 0;
+        }
+        counter[groupKey] += 1;
+      }
+      console.log(counter);
+      for (const key in counter) {
+        console.log(counter[key]);
+        if (counter[key] !== 1 || Object.keys(counter).length !== 6) {
+          return false;
+        }
+      }
+
+      return true;
+    },
+    {
+      message: "You have to select exact 1 user for each question",
+    }
+  ),
+});
+
 const questionsComponent: React.FC<PosQuestionProps> = ({
-  id,
+  sociogramId,
   negQuestions,
   posQuestions,
   users,
@@ -29,6 +58,25 @@ const questionsComponent: React.FC<PosQuestionProps> = ({
   const dispatch = useAppDispatch();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [finalPostData, setFinalPostData] = useState({} as FormPostData);
+
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+
+  const handleCheckedChange = (
+    checked: string | boolean,
+    index: number,
+    user: FormUsers,
+    field: any,
+    questionType: string
+  ) => {
+    const userKey = `${index}-${user.id}-${questionType}`;
+    if (checked) {
+      setSelectedUsers([...selectedUsers, userKey]);
+      field.onChange([...field.value, userKey]);
+    } else {
+      setSelectedUsers(selectedUsers.filter((key) => key !== userKey));
+      field.onChange(field.value?.filter((value: string) => value !== userKey));
+    }
+  };
 
   const handleConfirm = () => {
     setIsDialogOpen(false);
@@ -40,38 +88,9 @@ const questionsComponent: React.FC<PosQuestionProps> = ({
     setIsDialogOpen(false);
   };
 
-  const FormSchema = z.object({
-    items: z.array(z.string()).refine(
-      (value) => {
-        type Counter = { [key: string]: number };
-        const counter: Counter = {};
-        for (const item of value) {
-          const [questionIndex, userId, questionType] = item.split("-");
-          if (!counter[`${questionIndex}-${questionType}`]) {
-            counter[`${questionIndex}-${questionType}`] = 0;
-          }
-          counter[`${questionIndex}-${questionType}`]++;
-        }
-        let checkCounterValues = true;
-        for (const key in counter) {
-          if (counter[key] < 3) {
-            checkCounterValues = false;
-          }
-        }
-        if (checkCounterValues) {
-          return true;
-        } else {
-          return false;
-        }
-      },
-      {
-        message: "You have to select more than 3 items.",
-      }
-    ),
-  });
-
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
+    mode: "onChange",
     defaultValues: { items: [] },
   });
 
@@ -79,47 +98,34 @@ const questionsComponent: React.FC<PosQuestionProps> = ({
     //event.preventDefault();
     setIsDialogOpen(true);
 
-    let questionsAndAnswers: QuestionAndAnswer[] = [];
+    let posQuestions: string[] = [];
+    let negQuestions: string[] = [];
 
     for (const item of data.items) {
       const [questionIndex, userId, questionType] = item.split("-");
-      let currentQuestion = "";
-      if (questionType === "pos") {
-        currentQuestion = posQuestions[parseInt(questionIndex)];
-      } else {
-        currentQuestion = negQuestions[parseInt(questionIndex)];
-      }
-      let currentUserFirstName =
-        users.find((user) => user.id === userId)?.firstName || "";
-      let currentUserLastName =
-        users.find((user) => user.id === userId)?.lastName || "";
-      let fullName = `${currentUserFirstName} ${currentUserLastName}`.trim();
-      let questionObj = questionsAndAnswers.find(
-        (q) => q.question === currentQuestion
-      );
 
-      if (questionObj) {
-        // If the question exists and the user is not already listed, add the user
-        if (!questionObj.answers.includes(fullName)) {
-          questionObj.answers.push(fullName);
+      if (questionType === "pos") {
+        if (!posQuestions.includes(userId)) {
+          posQuestions.push(userId);
         }
       } else {
-        questionsAndAnswers.push({
-          answers: [fullName], // Use fullName which includes both first and last names
-          questionType: questionType,
-          question: currentQuestion,
-        });
+        if (!negQuestions.includes(userId)) {
+          negQuestions.push(userId);
+        }
       }
     }
 
     let finalData: FormPostData = {
-      id: id,
+      sociogramId: sociogramId,
       firstName: mainUser.firstName,
       lastName: mainUser.lastName,
-      questionsAndAnswers: questionsAndAnswers,
+      gender: mainUser.gender,
+      //users: users,
+      posQuestions: posQuestions,
+      negQuestions: negQuestions,
     };
     setFinalPostData(finalData);
-    console.log(finalData);
+    //console.log(finalData);
     toast(() => (
       <div>
         <h4>You submitted the following values:</h4>
@@ -145,6 +151,8 @@ const questionsComponent: React.FC<PosQuestionProps> = ({
                   mainUser: mainUser,
                   form: form,
                   questionType: "pos",
+                  selectedUsers: selectedUsers,
+                  handleCheckedChange: handleCheckedChange,
                 })}
                 {CustomFormRender({
                   questions: negQuestions,
@@ -152,10 +160,13 @@ const questionsComponent: React.FC<PosQuestionProps> = ({
                   mainUser: mainUser,
                   form: form,
                   questionType: "neg",
+                  selectedUsers: selectedUsers,
+                  handleCheckedChange: handleCheckedChange,
                 })}
               </>
             )}
           />
+
           <Button type="submit">Submit</Button>
         </form>
       </Form>

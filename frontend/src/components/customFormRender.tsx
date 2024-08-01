@@ -1,5 +1,5 @@
-import React from "react";
-import { useFormContext, Controller } from "react-hook-form";
+import React, { useState } from "react";
+import { useFormContext, Controller, Noop, RefCallBack } from "react-hook-form";
 import { FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import { Checkbox } from "./ui/checkbox";
 import { Label } from "./ui/label";
@@ -10,7 +10,15 @@ interface UserPageProps {
   mainUser: any;
   users: FormUsers[];
   form: any;
+  selectedUsers: string[];
   questionType: string;
+  handleCheckedChange: (
+    checked: string | boolean,
+    index: number,
+    user: FormUsers,
+    field: any,
+    questionType: string
+  ) => void;
 }
 
 const CustomFormRender = ({
@@ -18,7 +26,9 @@ const CustomFormRender = ({
   users,
   mainUser,
   form,
+  selectedUsers,
   questionType,
+  handleCheckedChange,
 }: UserPageProps) => {
   return (
     <>
@@ -29,8 +39,15 @@ const CustomFormRender = ({
               <FormLabel className="text-base">{question}</FormLabel>
             </div>
             {users.length > 0 &&
-              users.map((user, userIndex, array) =>
-                user.id !== mainUser.id ? (
+              users.map((user, userIndex, array) => {
+                const userKey = `${index}-${user.id}-${questionType}`;
+                const isSelected = selectedUsers.includes(userKey);
+
+                const isAnySelectedForUser = selectedUsers.some((key) =>
+                  key.includes(`-${user.id}-`)
+                );
+
+                return (
                   <FormField
                     key={`${index}-${user.id}-${questionType}`}
                     control={form.control}
@@ -38,39 +55,38 @@ const CustomFormRender = ({
                     render={({ field }) => {
                       return (
                         <div
-                          key={`${index}-${user.id}-${questionType}`}
                           className={`flex items-center space-x-2 ${
                             userIndex !== array.length - 1 ? "mb-6" : ""
                           }`}
                         >
-                          <Checkbox
-                            checked={field.value?.includes(
-                              `${index}-${user.id}-${questionType}`
-                            )}
-                            onCheckedChange={(checked) => {
-                              return checked
-                                ? field.onChange([
-                                    ...field.value,
-                                    `${index}-${user.id}-${questionType}`,
-                                  ])
-                                : field.onChange(
-                                    field.value?.filter(
-                                      (value: string) =>
-                                        value !==
-                                        `${index}-${user.id}-${questionType}`
-                                    )
+                          {(isSelected ||
+                            (!isAnySelectedForUser &&
+                              mainUser.id !== user.id)) && (
+                            <>
+                              <Checkbox
+                                checked={field.value?.includes(userKey)}
+                                onCheckedChange={(checked) => {
+                                  handleCheckedChange(
+                                    checked,
+                                    index,
+                                    user,
+                                    field,
+                                    questionType
                                   );
-                            }}
-                          />
-                          <Label className="items-start">
-                            {user.firstName + " " + user.lastName}
-                          </Label>
+                                }}
+                              />
+
+                              <Label className="items-start">
+                                {user.firstName + " " + user.lastName}
+                              </Label>
+                            </>
+                          )}
                         </div>
                       );
                     }}
                   />
-                ) : null
-              )}
+                );
+              })}
             <FormMessage />
           </FormItem>
         ))

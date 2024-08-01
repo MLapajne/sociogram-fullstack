@@ -51,7 +51,7 @@ class User(models.Model):
 
 
 class Sociogram(models.Model):
-    id = models.CharField(max_length=50, primary_key=True)
+    id = models.CharField(max_length=100, primary_key=True)
     instructorName = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
     language = models.CharField(max_length=2)
@@ -63,25 +63,23 @@ class Sociogram(models.Model):
 
 
 
-class AnswersFrontend(models.Model):
-    QUESTION_TYPES = (
-        ('pos', 'Positive'),
-        ('neg', 'Negative')
-    )
-    question = models.CharField(max_length=255)
-    answers = models.JSONField(default=list)
-    questionType = models.CharField(max_length=3, choices=QUESTION_TYPES)
-    
-    def __str__(self):
-        return f"Question {self.index}"
+
 
 class SubmitFrontendData(models.Model):
-    id = models.CharField(max_length=50, primary_key=True)
+    GENDER_CHOICES = (
+        ('MALE', 'Male'),
+        ('FEMALE', 'Female'),
+        ('OTHER', 'Other')
+    )
+    sociogramId = models.CharField(max_length=100)
     #author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='answers_frontend')
     firstName = models.CharField(max_length=50)
     lastName = models.CharField(max_length=50)
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
+    users = models.ManyToManyField(User, related_name='answers_frontend')
     createdAt = models.DateTimeField(auto_now_add=True)
-    questionsAndAnswers = models.ManyToManyField(AnswersFrontend)
+    posQuestions = models.JSONField(default=list)
+    negQuestions = models.JSONField(default=list)
     
     
     
