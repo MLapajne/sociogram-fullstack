@@ -1,8 +1,5 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { NavbarLinks } from "./NavbarLinks";
-import { Button } from "@/components/ui/button";
-import { MobileMenu } from "./MobileMenu";
 import { UserNav } from "./UserNav";
 import { HelpDialog } from "./HelpDialog";
 
@@ -21,18 +18,8 @@ export default function Navbar() {
       </div>
 
       <div className="flex  items-center gap-x-2 ms-auto md:col-span-9">
-        <UserNav
-          //email={user.email as string}
-          //name={user.given_name as string}
-          //userImage={ user.picture ?? `https://avatar.vercel.sh/${user.given_name}`}
-          email={"janez.kosmač@gmail.com"}
-          name={"Janez Kosmač"}
-          userImage={"https://avatar.vercel.sh/janez"}
-        />
+        <UserNav />
         <HelpDialog />
-      </div>
-      <div className="md:hidden">
-        <MobileMenu />
       </div>
     </nav>
   );

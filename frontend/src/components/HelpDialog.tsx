@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,8 +9,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { getTranslations } from "@/helpers/translations";
+import { LanguageDataContext } from "@/context/LanguageDataContext";
 
 export function HelpDialog() {
+  const { languageData, setLanguageData } = useContext(LanguageDataContext);
+  const [translations, setTranslations] = useState(
+    getTranslations(languageData)
+  );
+
+  useEffect(() => {
+    const newTranslations = getTranslations(languageData);
+    setTranslations(newTranslations);
+  }, [languageData]);
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -31,18 +42,17 @@ export function HelpDialog() {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Edit profile</DialogTitle>
-          <DialogDescription>
-            Make changes to your profile here. Click save when you're done.
-          </DialogDescription>
+          <DialogTitle>{translations.helpTitle}</DialogTitle>
+          <DialogDescription>{translations.helpDescription}</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4"></div>
-          <div className="grid grid-cols-4 items-center gap-4"></div>
+          <div className="grid grid-cols-1 items-center gap-4">
+            <p>Mikro Graf Art d.o.o.</p>
+            <p>Archinetova 7, SI-1000 Ljubljana</p>
+            <p>Email: slavc.zust@mga.si</p>
+            <p>Phone: +386 41 782 099</p>
+          </div>
         </div>
-        <DialogFooter>
-          <Button type="submit">Save changes</Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

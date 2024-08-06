@@ -1,15 +1,18 @@
-import React, { useState } from "react";
-import { FormPostData, FormUsers, QuestionAndAnswer } from "@/classes/formData";
-import { Form, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
+import React, { useContext, useEffect, useState } from "react";
+import { FormPostData, FormUsers } from "@/classes/formData";
+import { Form, FormField } from "./ui/form";
 import { Button } from "./ui/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { toast } from "react-toastify";
 import CustomFormRender from "./customFormRender";
 import ConfirmationDialog from "./ConfirmationDialog";
-import { useAppDispatch, useAppSelector } from "../app/hooks";
-import { postFormData, reset } from "../features/formPost/formPostSlice";
+import { useAppDispatch } from "../app/hooks";
+import { postFormData } from "../features/formPost/formPostSlice";
+import { SubmitDataContext } from "../context/SubmitDataContext";
+import { getTranslations } from "../helpers/translations";
+import { LanguageDataContext } from "@/context/LanguageDataContext";
+import { useNavigate } from "react-router-dom";
 
 interface PosQuestionProps {
   sociogramId: string;
@@ -19,35 +22,6 @@ interface PosQuestionProps {
   mainUser: FormUsers;
 }
 
-const FormSchema = z.object({
-  items: z.array(z.string()).refine(
-    (value) => {
-      type Counter = { [key: string]: number };
-      const counter: Counter = {};
-      for (const item of value) {
-        const [questionIndex, , questionType] = item.split("-");
-        const groupKey = `${questionIndex}-${questionType}`;
-        if (!counter[groupKey]) {
-          counter[groupKey] = 0;
-        }
-        counter[groupKey] += 1;
-      }
-      console.log(counter);
-      for (const key in counter) {
-        console.log(counter[key]);
-        if (counter[key] !== 1 || Object.keys(counter).length !== 6) {
-          return false;
-        }
-      }
-
-      return true;
-    },
-    {
-      message: "You have to select exact 1 user for each question",
-    }
-  ),
-});
-
 const questionsComponent: React.FC<PosQuestionProps> = ({
   sociogramId,
   negQuestions,
@@ -56,10 +30,55 @@ const questionsComponent: React.FC<PosQuestionProps> = ({
   mainUser,
 }) => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDisclaimerDialogOpen, setIsDisclaimerDialogOpen] = useState(true);
   const [finalPostData, setFinalPostData] = useState({} as FormPostData);
 
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const { dataContext, setDataContext } = useContext(SubmitDataContext);
+  const { languageData, setLanguageData } = useContext(LanguageDataContext);
+
+  const [translations, setTranslations] = useState(
+    getTranslations(languageData)
+  );
+
+  useEffect(() => {
+    const newTranslations = getTranslations(languageData);
+    setTranslations(newTranslations);
+  }, [languageData]);
+
+  const FormSchema = z.object({
+    items: z.array(z.string()).refine(
+      (value) => {
+        type Counter = { [key: string]: number };
+        const counter: Counter = {};
+        for (const item of value) {
+          const [questionIndex, , questionType] = item.split("-");
+          const groupKey = `${questionIndex}-${questionType}`;
+          if (!counter[groupKey]) {
+            counter[groupKey] = 0;
+          }
+          counter[groupKey] += 1;
+        }
+
+        for (const key in counter) {
+          if (
+            counter[key] === 1 &&
+            Object.keys(counter).length ===
+              posQuestions.length + negQuestions.length
+          ) {
+            return true;
+          }
+        }
+
+        return false;
+      },
+      {
+        message: "You have to select exact 1 user for each question",
+      }
+    ),
+  });
 
   const handleCheckedChange = (
     checked: string | boolean,
@@ -81,7 +100,13 @@ const questionsComponent: React.FC<PosQuestionProps> = ({
   const handleConfirm = () => {
     setIsDialogOpen(false);
     // Add your confirmation logic here
-    if (finalPostData) dispatch(postFormData(finalPostData));
+    if (finalPostData) {
+      dispatch(postFormData(finalPostData));
+      navigate("/thank-you");
+    }
+  };
+  const handleAccept = () => {
+    setIsDisclaimerDialogOpen(false);
   };
 
   const handleCancel = () => {
@@ -90,9 +115,13 @@ const questionsComponent: React.FC<PosQuestionProps> = ({
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
-    mode: "onChange",
+    mode: "all",
     defaultValues: { items: [] },
   });
+
+  useEffect(() => {
+    form.trigger(); // Manually trigger validation on initial render
+  }, [form]);
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
     //event.preventDefault();
@@ -125,15 +154,8 @@ const questionsComponent: React.FC<PosQuestionProps> = ({
       negQuestions: negQuestions,
     };
     setFinalPostData(finalData);
-    //console.log(finalData);
-    toast(() => (
-      <div>
-        <h4>You submitted the following values:</h4>
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      </div>
-    ));
+
+    setDataContext((prevContext: any[]) => [...prevContext, mainUser]);
   }
 
   return (
@@ -167,13 +189,26 @@ const questionsComponent: React.FC<PosQuestionProps> = ({
             )}
           />
 
-          <Button type="submit">Submit</Button>
+          <Button type="submit">{translations.submitButtonText}</Button>
         </form>
       </Form>
       <ConfirmationDialog
         isOpen={isDialogOpen}
         onConfirm={handleConfirm}
         onCancel={handleCancel}
+        title={translations.title}
+        description={translations.description}
+        confirmText={translations.confirmText}
+        cancelText={translations.cancelText}
+      />
+      <ConfirmationDialog
+        isOpen={isDisclaimerDialogOpen}
+        onConfirm={handleAccept}
+        onCancel={() => {}}
+        title={translations.disclaimerTitle}
+        description={translations.disclaimerDescription}
+        confirmText={translations.disclaimerConfirmText}
+        cancelText={translations.disclaimerCancelText}
       />
     </>
   );

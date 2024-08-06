@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { useFormContext, Controller, Noop, RefCallBack } from "react-hook-form";
+import React from "react";
 import { FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import { Checkbox } from "./ui/checkbox";
 import { Label } from "./ui/label";
@@ -54,15 +53,11 @@ const CustomFormRender = ({
                     name="items"
                     render={({ field }) => {
                       return (
-                        <div
-                          className={`flex items-center space-x-2 ${
-                            userIndex !== array.length - 1 ? "mb-6" : ""
-                          }`}
-                        >
+                        <>
                           {(isSelected ||
                             (!isAnySelectedForUser &&
                               mainUser.id !== user.id)) && (
-                            <>
+                            <div className={"flex items-center space-x-2"}>
                               <Checkbox
                                 checked={field.value?.includes(userKey)}
                                 onCheckedChange={(checked) => {
@@ -79,9 +74,9 @@ const CustomFormRender = ({
                               <Label className="items-start">
                                 {user.firstName + " " + user.lastName}
                               </Label>
-                            </>
+                            </div>
                           )}
-                        </div>
+                        </>
                       );
                     }}
                   />

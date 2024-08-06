@@ -1,57 +1,24 @@
-import uuid
 from django.contrib.auth.models import User
+from .utils import send_welcome_email
 from rest_framework import serializers
-from .models import Note, SubmitFrontendData, UserRandomValue
-from django import forms
-from rest_framework.response import Response
+from .models import SubmitFrontendData
 from .models import User, Sociogram
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ["id", "username", "password"]
-        extra_kwargs = {"password": {"write_only": True}}
-    
-    def create(self, validated_data):
-        user = User.objects.create_user(**validated_data)
-        UserRandomValue.objects.create(user=user) # uuid
-        return user
-    
-class NoteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Note
-        fields = ["id", "title", "content","created_at", "author", ]
-        read_only_fields = ["author", "created_at"]
-        #extra_kwargs = {"title": {"author": {"write_only": True}}}
-
-"""
-class UserFormSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = '__all__'
-"""
-
-
-
-#generated code:
-
-
 
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'firstName', 'lastName', 'gender']
+        fields = ['id', 'firstName', 'lastName', 'email', 'gender']
+
         
-import logging
+        
 
-logger = logging.getLogger(__name__)
     
 
 class SociogramSerializer(serializers.ModelSerializer):
     users = UserSerializer(many=True)
-
 
 
     class Meta:
@@ -66,14 +33,18 @@ class SociogramSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         users_data = validated_data.pop('users')
-        
+
         sociogram = Sociogram.objects.create(**validated_data)
         
         
+        users = []
         for user_data in users_data:
-            user, created = User.objects.get_or_create(**user_data)
-            sociogram.users.add(user)
-        
+            user = User.objects.create(**user_data)
+            users.append(user)
+            send_welcome_email(user.email, user.id, sociogram.id)
+    
+        sociogram.users.set(users)
+        #sociogram.save()
             
         return sociogram
 

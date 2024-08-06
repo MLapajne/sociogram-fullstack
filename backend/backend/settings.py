@@ -165,3 +165,13 @@ CORS_ALLOW_CREDENTIALS = True
 
 # Or, to allow all origins (not recommended for production):
 CORS_ALLOW_ALL_ORIGINS = True
+
+
+
+# send mail stuff
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp-relay.brevo.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = '79f2cf001@smtp-brevo.com'
+EMAIL_HOST_PASSWORD = 'wDt5KkXRM9ESjTpA'

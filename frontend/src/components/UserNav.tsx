@@ -1,5 +1,4 @@
-import React from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import React, { useContext } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,15 +10,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Link } from "react-router-dom";
-import { cn } from "@/lib/utils";
+import { LanguageDataContext } from "@/context/LanguageDataContext";
 
-interface iAppProps {
-  email: string;
-  name: string;
-  userImage: string | undefined;
-}
+export function UserNav() {
+  const { languageData, setLanguageData } = useContext(LanguageDataContext);
 
-export function UserNav({ email, name, userImage }: iAppProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -49,22 +44,38 @@ export function UserNav({ email, name, userImage }: iAppProps) {
       <DropdownMenuContent align="end" className="w-10" forceMount>
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
-            <Link className="font-semibold" to="/sell">
+            <Link
+              className="font-semibold"
+              onClick={() => setLanguageData("sl")}
+              to="#"
+            >
               Slovenski
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link className="font-semibold" to="/settings">
+            <Link
+              className="font-semibold"
+              onClick={() => setLanguageData("hr")}
+              to="#"
+            >
               Hrvatski
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link className="font-semibold" to="my-products">
+            <Link
+              className="font-semibold"
+              onClick={() => setLanguageData("en")}
+              to="#"
+            >
               English
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link className="font-semibold" to="/billing">
+            <Link
+              className="font-semibold"
+              onClick={() => setLanguageData("de")}
+              to="#"
+            >
               Deutsch
             </Link>
           </DropdownMenuItem>

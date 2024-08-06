@@ -1,7 +1,6 @@
 import React from "react";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogTitle,
   DialogDescription,
@@ -13,25 +12,34 @@ interface ConfirmationDialogProps {
   isOpen: boolean;
   onConfirm: () => void;
   onCancel: () => void;
+  title: string;
+  description: string;
+  confirmText: string;
+  cancelText: string;
 }
 
 const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   isOpen,
   onConfirm,
   onCancel,
+  title,
+  description,
+  confirmText,
+  cancelText,
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onCancel}>
-      <DialogTrigger asChild>
-        <button style={{ display: "none" }}>Open Dialog</button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogTitle>Confirmation</DialogTitle>
-        <DialogDescription>Are you sure you want to submit?</DialogDescription>
+      <DialogContent
+        onInteractOutside={(e) => {
+          e.preventDefault();
+        }}
+      >
+        <DialogTitle>{title}</DialogTitle>
+        <DialogDescription>{description}</DialogDescription>
         <DialogFooter>
-          <button onClick={onConfirm}>Confirm</button>
+          <button onClick={onConfirm}>{confirmText}</button>
           <DialogClose asChild>
-            <button onClick={onCancel}>Cancel</button>
+            <button onClick={onCancel}>{cancelText}</button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

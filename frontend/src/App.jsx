@@ -1,66 +1,50 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useContext } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Home from "./pages/Home";
-import NotFound from "./pages/NotFound";
-import ProtectedRoute from "./components/ProtectedRoute";
-import UserForm from "./pages/UserForm";
 import { useAppDispatch, useAppSelector } from "./app/hooks";
-import { formUrl, reset } from "./features/urls/formUrlsSlice";
-import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Navbar from "./components/Navbar";
 import CheckForm from "./pages/CheckForm";
 import { fetchSociograms } from "./features/urls/formPeopleSlice";
-
-function Logout() {
-  localStorage.clear();
-  return <Navigate to="/login" />;
-}
-
-function RegisterAndLogout() {
-  localStorage.clear();
-  return <Register />;
-}
+import { SubmitDataContext } from "./context/SubmitDataContext";
+import { LanguageDataContext } from "./context/LanguageDataContext";
+import { reset } from "./features/urls/formPeopleSlice";
+import ThankYou from "./pages/ThankYou";
 
 function App() {
   const dispatch = useAppDispatch();
   const formData = useAppSelector((state) => state.formPeople);
 
+  const { languageData, setLanguageData } = useContext(LanguageDataContext);
+  const { dataContext, setDataContext } = useContext(SubmitDataContext);
+
+  const language =
+    formData.sociograms && formData.sociograms.length > 0
+      ? formData.sociograms[0].language
+      : "en";
+
   useEffect(() => {
     dispatch(reset());
     dispatch(fetchSociograms());
+    setLanguageData(language);
   }, []);
 
   return (
     <BrowserRouter>
       <Navbar />
       <Routes>
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/logout" element={<Logout />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<RegisterAndLogout />} />
-        <Route path="*" element={<NotFound />} />
-        <Route path="/tableform" element={<CheckForm />} />
-
+        <Route path="/thank-you" element={<ThankYou />} />
         {formData &&
           formData.sociograms &&
           formData.sociograms.map((sociogram) =>
-            sociogram.users.map((usr) => (
-              <Route
-                key={usr.id}
-                path={`/user_form/${usr.id}-${sociogram.id}`}
-                element={<CheckForm mainUser={usr} formData={sociogram}  />}
-              />
-            ))
+            sociogram.users
+              .filter((usr) => !dataContext.includes(usr.id))
+              .map((usr) => (
+                <Route
+                  key={usr.id}
+                  path={`/user_form/${usr.id}-${sociogram.id}`}
+                  element={<CheckForm mainUser={usr} formData={sociogram} />}
+                />
+              ))
           )}
       </Routes>
     </BrowserRouter>
